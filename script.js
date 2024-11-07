@@ -1,56 +1,39 @@
-// Selecionando os elementos do formulário e da página
-const form = document.getElementById('currency-form'); // cria const para o formulário
-const amountInput = document.getElementById('amount'); // cria const para campo onde o usuário insere o valor para conversão
-const fromCurrency = document.getElementById('from-currency'); // cria const para armazenar moeda de origem para conversão
-const toCurrency = document.getElementById('to-currency'); // cria const para armazenar moeda de destino
-const resultDiv = document.getElementById('result'); // cria const para onde o resultado será exibido
-const resetButton = document.getElementById('reset'); // cria const para botão que limpa o formulário
+// Cria const para todos os elementos do website
+const form = document.getElementById('investment-form');
+const amountInput = document.getElementById('amount');
+const periodInput = document.getElementById('period');
+const rateInput = document.getElementById('rate');
+const resultDiv = document.getElementById('result');
+const resetButton = document.getElementById('reset');
 
-// Função para fazer a requisição à API e obter a taxa de câmbio
-function getConversionRate(from, to) {
-    const url = `https://economia.awesomeapi.com.br/last/${from}-${to}`; // URL da API: A URL da API é formatada dinamicamente com as moedas selecionadas (from e to). Por exemplo, se o usuário selecionar "USD" para "from" e "BRL" para "to", a URL será: https://economia.awesomeapi.com.br/last/USD-BRL.
-    return fetch(url) //cria um fetch na url sendo resolvido apenas quando a url retorna um valor ao fetch
-        .then(response => response.json())
-        .then(data => {
-            // O nome do par de moedas será no formato "FROMTO" (ex: USDBRL, EURUSD)
-            const conversionKey = `${from}${to}`; // cria const puxando propiedades da url from=de to=para (representado como a junção das moedas ex: USDBRL)
-            return data[conversionKey].bid; // agora o campo acessa a função bid que representa o valor de cotação da moeda de origem em relação a moeda de destino
-        })
-        .catch(error => {
-            console.error('Erro ao buscar dados da API:', error);
-            resultDiv.innerHTML = 'Erro ao buscar dados da conversão. Tente novamente mais tarde.';
-        }); // esse campo serve para relatar caso ocorra algum erro quando o código for se comucar com a API, caso ocorra o erro ele armazena o mesmo no campo catch e após exibira o erro na tela
-}
-// Função para realizar a conversão
-function convertCurrency(event) {
-    event.preventDefault(); // Evitar que a página seja recarregada ao enviar o formulário
 
-    const amount = parseFloat(amountInput.value); // Verifica o valor mandado pelo usuário se é positivo e numérico caso seja inválido é exibida uma mensagem de erro
-    const from = fromCurrency.value; // Moeda de origem
-    const to = toCurrency.value; // Moeda de destino
+function simulateInvestment(event) { //cria função de simularInvestimentos e adiciona event 
+    event.preventDefault(); // adiciona elemento preventDefault para que não haja problemas na execução do código, onde o mesmo será rodado juntamente com o html na página
 
-    if (isNaN(amount) || amount <= 0) {
-        resultDiv.innerHTML = 'Por favor, insira um valor válido.';
-        return;
-    } // mensagem de erro da const amont
+    //cria 3 navas consts pegando informações de consts anteriores e dando valor a elas, também dizendo que
+    const amount = parseFloat(amountInput.value); // nessa const é usado parseFloat que transforma a string criada em um número decimal
+    const period = parseInt(periodInput.value); // nessa const é usado parseInt para transformar a string enviada pelo campo de input em um inteiro
+    const rate = parseFloat(rateInput.value) / 100; // nessa const é usado parseFloat para transformar a strng criada em um número decimal logo após o número é dividido por 100
 
-    // caso o valor enviado pelo usuário seja valido:
+    if (isNaN(amount) || amount <= 0 || isNaN(period) || period <= 0 || isNaN(rate)) { // verifica o valor presente em todos os campos e se estão de acordo com 
+        resultDiv.innerHTML = 'Por favor, insira valores válidos.';
+        return; // caso as informações estejam incorretas ele exibe uma mensagem de erro e retorna a função para parar o funcionamento do js
+    }
 
-    // Chama a função para obter a taxa de conversão
-    getConversionRate(from, to).then(rate => {
-        if (rate) {
-            const convertedAmount = (amount * rate).toFixed(2); // Faz o cálculo da conversão. Usando o valor de amont e multiplicando o valor pela taxa rate e o resultado é arredondado para duas casas decimais com .toFixed(2)
-            resultDiv.innerHTML = `<p>${amount} ${from} = ${convertedAmount} ${to}</p>`; // exibe o valor obtido
-        }
-    });
+    // Cálculo do montante futuro com juros compostos mensais
+    const futureValue = (amount * Math.pow((1 + rate / 12), period)).toFixed(2); // cria-se uma const para dizer o valor futuro onde pega o valor de amont e faz vezes, (1 + rate / 12) => Isso simula o efeito dos juros compostos ao longo do tempo. Cada período (mês) aplica novamente a taxa de crescimento sobre o valor acumulado, aumentando o valor total, com isso obtem-se o valor de period. Após é utilizado toFixed para limitar o valor consedido a duas casas decimais.
+
+    resultDiv.innerHTML = `<p>Após ${period} meses, seu investimento será equivalente a ${futureValue}.</p>`;
+    // nesse momento é informado o resultado da operação colocando os valores concedidos dentro das funções representadas por ${}.
 }
 
 // Função para resetar o formulário e o resultado
-function resetForm() {
-    form.reset(); // redefine o formulário para os valores iniciais
-    resultDiv.innerHTML = ''; // limpa o resultado mostrado na tela
+// mesmo funcionamento do reset do conversor de moedas
+function resetForm() {  // cria função resetar
+    form.reset(); // // linca e diz que a função reset será utilizada no form
+    resultDiv.innerHTML = ''; // diz para que o campo seja esvaziado 
 }
 
 // Adicionando os event listeners para o submit do formulário e o botão de reset
-form.addEventListener('submit', convertCurrency); // adiciona evento para que quando o usuário clicar em enviar a função convetCurrency seja executada
-resetButton.addEventListener('click', resetForm); // adiciona evento para que quando o usúario clicar no botão de reset o formulário execute a função resetForm
+form.addEventListener('submit', simulateInvestment);
+resetButton.addEventListener('click', resetForm);
